@@ -35,7 +35,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          branch: beta
+          branch: auto-pr/beta-to-main
           title: "Auto PR: Beta to Main"
           body: |
             Automated PR created after successful build from _sample folder.
+          delete-branch: true
