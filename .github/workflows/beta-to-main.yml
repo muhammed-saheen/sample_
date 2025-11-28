@@ -1,4 +1,4 @@
-name: Build & Create PR (beta → main)
+name: Build & Create PR (beta to main)
 
 on:
   push:
@@ -32,6 +32,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
           branch: beta
-          title: "Auto PR: Beta → Main"
+          title: "Auto PR: Beta to Main"
           body: |
             Automated PR created after successful build from _sample folder.
