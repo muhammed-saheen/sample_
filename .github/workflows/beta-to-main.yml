@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
       - name: Create Pull Request to main
-        uses: peter-evans/create-pull-request@v6
+        uses: repo-sync/pull-request@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
