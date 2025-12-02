@@ -3,65 +3,47 @@ name: Build & Publish to ECR + Create PR
 on:
   push:
     branches:
-      - beta
+      - main
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  build:
+  build-react:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.19.0'
-
-      - name: Install dependencies
-        working-directory: ./my-react-app
+      
+      - name: Install deps
         run: npm install
-
+      
       - name: Build project
-        working-directory: ./my-react-app
         run: npm run build
 
-      # ------------------------------
-      # AWS LOGIN TO ECR
-      # ------------------------------
-      - name: Configure AWS Credentials
+  push-to-ecr:
+    needs: build-react  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # ------------------------------
-      # DOCKER BUILD + PUSH TO ECR
-      # ------------------------------
-      - name: Build, Tag, and Push Image to ECR
-        env:
-          ECR_REGISTRY: ${{ secrets.AWS_REGISTRY }}
-          ECR_REPOSITORY: sampleproject
-          IMAGE_TAG: latest
+      - name: Build and Push
         run: |
-          # Build docker image
-          docker build -t $ECR_REPOSITORY .
-
-          # Tag image for ECR
-          docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-          # Push image to ECR
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
- 
+          docker build -t sampleproject .
+          docker tag sampleproject:latest ${{ secrets.AWS_REGISTRY }}/sampleproject:latest
+          docker push ${{ secrets.AWS_REGISTRY }}/sampleproject:latest
 
 
 
