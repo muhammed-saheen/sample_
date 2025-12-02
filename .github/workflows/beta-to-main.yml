@@ -24,13 +24,6 @@ jobs:
         working-directory: ./my-react-app
         run: npm run build
 
-      - name: Upload build folder as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: react-build
-          path: my-react-app/dist   # if using Vite
-          # path: my-react-app/build  # if using CRA
-
   push-to-ecr:
     needs: build-react  
     runs-on: ubuntu-latest
