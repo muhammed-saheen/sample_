@@ -1,10 +1,10 @@
-name: Build & Create PR (beta to main)
+name: Build & Publish to ECR + Create PR
 
 on:
   push:
     branches:
       - beta
-      
+
 permissions:
   contents: write
   pull-requests: write
@@ -30,13 +30,50 @@ jobs:
         working-directory: ./my-react-app
         run: npm run build
 
+      # ------------------------------
+      # AWS LOGIN TO ECR
+      # ------------------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ------------------------------
+      # DOCKER BUILD + PUSH TO ECR
+      # ------------------------------
+      - name: Build, Tag, and Push Image to ECR
+        env:
+          ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+          ECR_REPOSITORY: my-react-app
+          IMAGE_TAG: latest
+        run: |
+          # Build docker image
+          docker build -t $ECR_REPOSITORY .
+
+          # Tag image for ECR
+          docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          # Push image to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # ------------------------------
+      # CREATE PR FROM BETA → MAIN
+      # ------------------------------
       - name: Create Pull Request to main
         uses: repo-sync/pull-request@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          branch: auto-pr/beta-to-main
-          title: "Auto PR: Beta to Main"
-          body: |
-            Automated PR created after successful build from _sample folder.
-          delete-branch: true
+          source_branch: beta
+          destination_branch: main
+          pr_title: "Auto PR: beta → main"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
+
+
