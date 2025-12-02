@@ -15,20 +15,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
-      - name: Install deps
+
+      - name: Install dependencies
+        working-directory: ./my-react-app
         run: npm install
       
       - name: Build project
+        working-directory: ./my-react-app
         run: npm run build
+
+      - name: Upload build folder as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: react-build
+          path: my-react-app/dist   # if using Vite
+          # path: my-react-app/build  # if using CRA
 
   push-to-ecr:
     needs: build-react  
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
 
+    steps:
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -39,14 +46,16 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Push
+      # ------------------------
+      # Build Docker inside my-react-app
+      # ------------------------
+      - name: Build and Push Docker Image
+        working-directory: ./my-react-app
+        env:
+          ECR_REGISTRY: ${{ secrets.AWS_REGISTRY }}
+          ECR_REPOSITORY: sampleproject
+          IMAGE_TAG: latest
         run: |
-          docker build -t sampleproject .
-          docker tag sampleproject:latest ${{ secrets.AWS_REGISTRY }}/sampleproject:latest
-          docker push ${{ secrets.AWS_REGISTRY }}/sampleproject:latest
-
-
-
-
-
-
+          docker build -t $ECR_REPOSITORY .
+          docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
