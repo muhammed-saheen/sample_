@@ -27,6 +27,7 @@ jobs:
   push-to-ecr:
     needs: build-react  
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Configure AWS
