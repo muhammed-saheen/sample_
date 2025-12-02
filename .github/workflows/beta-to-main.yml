@@ -44,7 +44,6 @@ jobs:
       # Build Docker inside my-react-app
       # ------------------------
       - name: Build and Push Docker Image
-        working-directory: ./my-react-app
         env:
           ECR_REGISTRY: ${{ secrets.AWS_REGISTRY }}
           ECR_REPOSITORY: sampleproject
