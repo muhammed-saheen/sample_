@@ -43,6 +43,14 @@ jobs:
       # ------------------------
       # Build Docker inside my-react-app
       # ------------------------
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Install dependencies
+        working-directory: ./my-react-app
+        run: npm install
+        
       - name: Build and Push Docker Image
         working-directory: ./my-react-app
         env:
